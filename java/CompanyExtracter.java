@@ -7,7 +7,7 @@ public class CompanyExtracter {
         System.loadLibrary("search");
 	  init("/home/fengxw/model", 2);
 	  long startTime = System.currentTimeMillis();
-	  System.out.println(search("北京奇格翱翔商贸有限公司北京凯达鼎盛建材有限公司北京东邦御厨厨房设备有限公司第二分公司北京天鸿恒达能源科技弿发有限公司", true));
+	  System.out.println(search("啊啊啊啊", true));
         System.out.println("time: " + (System.currentTimeMillis() - startTime));
         destroy();
      }
