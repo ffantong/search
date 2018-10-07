@@ -129,7 +129,8 @@ char * get_index_name(int position){
     FILE * fd = fopen(config->full_file_path, "rb");
     char * result = malloc(sizeof(char) * (MAX_LINE + 1));
     memset(result, 0, sizeof(char) * MAX_LINE);
-    fseek(fd, sizeof(char) * (position * MAX_LINE), SEEK_CUR);
+    long pos = sizeof(char) * position * MAX_LINE;
+    fseek(fd,  pos, SEEK_SET);
     fread(result, sizeof(char), MAX_LINE, fd);
     fclose(fd);
     return result;
