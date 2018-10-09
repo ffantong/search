@@ -2,14 +2,21 @@
 
 float load_factor = 0.75;
 
-int capacity;
+int capacity = pow(2, 13);;
 
 map_element ** elements;
 
 int size;
 
-static int map_hash(short key) {
-    return key & capacity;
+int key_len;
+
+static int map_hash(short *key) {
+    int h = 0;
+    for(int i = 0; i < key_len; i++) {
+        h = 31 * h + key[i];
+    }
+    h ^= h >> 16;
+    return h & (capacity - 1);
 }
 
 static void _destroy(map_element ** elements, int capacity) {
@@ -18,6 +25,9 @@ static void _destroy(map_element ** elements, int capacity) {
         p = elements[i];
         while(p != NULL) {
             q = p->next;
+            if(p->key != NULL) {
+                free(p->key);
+            }
             free(p);
             p = q;
         }
@@ -27,10 +37,10 @@ static void _destroy(map_element ** elements, int capacity) {
 
 static void extend(){
     int last_capacity = capacity;
-    capacity = (capacity << 1) + 1;
+    capacity = capacity << 1;
     map_element ** last_elements = elements;
     size = 0;
-    map_init();
+    map_init(key_len);
     map_element *p;
     for(int i = 0; i < last_capacity; i++) {
         p = last_elements[i];
@@ -39,31 +49,29 @@ static void extend(){
             p = p->next;
         }
     }
-    destroy(last_elements, last_capacity);
+    _destroy(last_elements, last_capacity);
 }
 
-void map_init() {
-    capacity = pow(2, 13) - 1;
-    elements = malloc(sizeof(map_element) * (capacity + 1));
+void map_init(int len) {
+    key_len = len;
+    elements = malloc(sizeof(map_element) * capacity);
     if (elements == NULL) {
         printf("memory error.");
         exit(1);
     }
-    for(int i = 0; i < capacity + 1; i++) {
+    for(int i = 0; i < capacity; i++) {
         elements[i] = NULL;
     }
 }
 
-void map_put(short key, void * entity) {
+void map_put(short *k, void * entity) {
+    int len = sizeof(short) * FIRST_LEN;
+    short * key = malloc(len);
+    MEM_CHECK(key);
+    memcpy(key, k, len);
     int index = map_hash(key);
-    if(size > capacity * load_factor) {
-        extend();
-    }
     map_element * element = malloc(sizeof(map_element));
-    if (element == NULL) {
-        printf("memory error.");
-        exit(1);
-    }
+    MEM_CHECK(element);
     element->key = key;
     element->entity = entity;
     element->next = NULL;
@@ -71,20 +79,20 @@ void map_put(short key, void * entity) {
     if (p == NULL) {
         elements[index] = element;
     } else {
-        if(p->key == key) {
+        if(memcmp(p->key, key, len) == 0) {
             p->entity = entity;
             free(element);
             return;
         }
         while(p->next != NULL) {
-            if(p->key == key) {
+            if(memcmp(p->key, key, len) == 0) {
                 p->entity = entity;
                 free(element);
                 return;
             }
             p = p->next;
         }
-        if(p->key == key) {
+        if(memcmp(p->key, key, len) == 0) {
             p->entity = entity;
             free(element);
             return;
@@ -92,9 +100,12 @@ void map_put(short key, void * entity) {
         p->next = element;
     }
     size++;
+    if(size > capacity * load_factor) {
+        extend();
+    }
 }
 
-void map_for_each(void(*p_func)(short ,void *)) {
+void map_for_each(void(*p_func)(short *,void *)) {
     map_element * p;
     for(int i = 0; i < capacity; i++) {
         p = elements[i];
@@ -105,10 +116,10 @@ void map_for_each(void(*p_func)(short ,void *)) {
     }
 }
 
-void * map_get(short key) {
+void * map_get(short *key) {
     map_element *element = elements[map_hash(key)];
     while(element != NULL) {
-        if (element->key == key) {
+        if (memcmp(element->key, key, key_len * sizeof(short)) == 0) {
             return element->entity;
         }
         element = element->next;

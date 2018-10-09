@@ -4,7 +4,7 @@ short ** cache;
 
 model_config * config;
 
-static void put_first(short key, first_element * first) {
+static void put_first(short *key, first_element * first) {
     first_element * f = map_get(key);
     if(f != NULL) {
         first->next = f;
@@ -13,7 +13,7 @@ static void put_first(short key, first_element * first) {
 }
 
 static void write_model(FILE * fd) {
-    void func(short key, void * first) {
+    void func(short *key, void * first) {
         first_element *p, *q, *head;
         if(first != NULL) {
             head = (first_element*)first;
@@ -27,7 +27,7 @@ static void write_model(FILE * fd) {
                 head = p;
                 p = q;
             }
-            fwrite(&key, sizeof(short), 1, fd);
+            fwrite(key, sizeof(short), FIRST_LEN, fd);
             fwrite(&size, sizeof(int), 1, fd);
             p = head;
             while(p!= NULL) {
@@ -36,7 +36,6 @@ static void write_model(FILE * fd) {
                 free(p);
                 p = q;
             }
-            //printf("%d  %d\n", key, size);
         }
     }
     map_for_each(func);
@@ -64,7 +63,7 @@ void file_to_model(char * file, char * model_dir) {
     char * next_file_path = get_file_name(model_dir, NEXT_FILE);
     char * prefix = malloc(sizeof(char) * (strlen(next_file_path) + 5));
     memset(prefix, 0, sizeof(char) * (strlen(next_file_path) + 5));
-    for(int i = 0; i < MAX_ITEM - 1; i++) {
+    for(int i = 0; i < MAX_ITEM - FIRST_LEN; i++) {
         sprintf(prefix, "%s_%02d", next_file_path, i + 1);
         fnext = fopen(prefix, "wb");
         FILE_CHECK(fnext);
@@ -101,25 +100,29 @@ void file_to_model(char * file, char * model_dir) {
             continue;
         }
         first = malloc(sizeof(first_element));
+        MEM_CHECK(first);
         first->position = position++;
         first->next = NULL;
-        put_first(s[0], first);
+        put_first(s, first);
         fwrite(buf, sizeof(char), MAX_LINE, fname);
-        for(int i = 1; i < MAX_ITEM; i++) {
+        for(int i = FIRST_LEN; i < MAX_ITEM; i++) {
             if(i < len){
-                fwrite(&s[i], sizeof(short), 1, next_files[i - 1]);
+                fwrite(&s[i], sizeof(short), 1, next_files[i - FIRST_LEN]);
             }else {
-                fwrite(&mask, sizeof(short), 1, next_files[i - 1]);
+                fwrite(&mask, sizeof(short), 1, next_files[i - FIRST_LEN]);
             }
         }
         free(s);
         if (position % 30000 == 0)
             printf(".");
+        if(position == 1000) {
+            break;
+        }
     }
     write_model(ffirst);
     fclose(fd);
     fclose(ffirst);
-    for(int i = 0; i < MAX_ITEM - 1; i++) {
+    for(int i = 0; i < MAX_ITEM - FIRST_LEN; i++) {
         fclose(next_files[i]);
     }
     fclose(fname);
@@ -202,8 +205,12 @@ match_result * cut(char * str, bool greedy) {
     first_model * first;
     match_element * current, * before = NULL, *p , *q, *tail;
     match_result * result = NULL, * result_tail;
-    for(int i = 0; i < len; i++) {
-        first = map_get(s[i]);
+    for(int i = FIRST_LEN; i < len + FIRST_LEN; i++) {
+        if (i - FIRST_LEN < len) {
+            first = map_get(s + i - FIRST_LEN);
+        }else {
+            first = NULL;
+        }
         current = NULL;
         if(first != NULL) {
             for(int j = 0; j < first->length; j++) {
@@ -221,7 +228,7 @@ match_result * cut(char * str, bool greedy) {
                 tail->next = NULL;
             }
         }
-        before = next_match(before, s[i]);
+        before = next_match(before, s[i - 1]);
         p = before;
         while(p != NULL) {
             if(p->last) {
@@ -268,8 +275,6 @@ match_result * cut(char * str, bool greedy) {
             tail->next = before;
             before = current;
         }
-        p = before;
-        q = p;
     }
     p = next_match(before, 0);
     q = p;
@@ -314,8 +319,9 @@ void load_model() {
     while(!feof(fout)) {
         first = malloc(sizeof(first_model));
         memset(first, 0, sizeof(first_model));
+        first->ch = malloc(sizeof(short) * FIRST_LEN);
         MEM_CHECK(first);
-        fread(&first->ch, sizeof(short), 1, fout);
+        fread(first->ch, sizeof(short), FIRST_LEN, fout);
         fread(&first->length, sizeof(int), 1, fout);
         first->elements = malloc(sizeof(int) * first->length);
         MEM_CHECK(first->elements);
@@ -326,7 +332,7 @@ void load_model() {
     char * prefix = malloc(sizeof(char) * (strlen(config->next_file_path) + 5));
     FILE * fd;
     cache = malloc(sizeof(short *) * config->cache_lavel);
-    for(int i = 0; i < config->cache_lavel; i++) {
+    for(int i = 0; i < config->cache_lavel && i < MAX_ITEM - FIRST_LEN; i++) {
         memset(prefix, 0, sizeof(char) * (strlen(config->next_file_path) + 5));
         sprintf(prefix, "%s_%02d", config->next_file_path, i + 1);
         printf("load cache: %s\n", prefix);
@@ -340,16 +346,16 @@ void load_model() {
 }
 
 void init(char * model_dir, int cache_level) {
-    map_init();
+    map_init(FIRST_LEN);
     config = malloc(sizeof(model_config));
     config->model_dir = model_dir;
     config->cache_lavel = cache_level;
     config->first_file_path = get_file_name(model_dir, FIRST_FILE);
     printf("first path: %s\n", config->first_file_path);
     config->next_file_path = get_file_name(model_dir, NEXT_FILE);
-    printf("next  path: %s\n", config->first_file_path);
+    printf("next  path: %s\n", config->next_file_path);
     config->full_file_path = get_file_name(model_dir, FULL_FILE);
-    printf("full  path: %s\n", config->first_file_path);
+    printf("full  path: %s\n", config->full_file_path);
     load_model();
 }
 
@@ -362,8 +368,9 @@ void destroy() {
     free(config->next_file_path);
     free(config->full_file_path);
     free(config);
-    void func(short key, void * first) {
+    void func(short *key, void * first) {
         first_model *p = (first_model *)first;
+        free(p->ch);
         free(p->elements);
         free(p);
     }

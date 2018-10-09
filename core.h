@@ -6,6 +6,7 @@
 #define FULL_FILE "name"
 #define NEXT_FILE "next"
 #define FIRST_FILE "first"
+#define FIRST_LEN 2
 
 typedef struct first_element {
     int position;
@@ -13,7 +14,7 @@ typedef struct first_element {
 } first_element;
 
 typedef struct first_model {
-    short ch;
+    short *ch;
     int length;
     int * elements;
 } first_model;
