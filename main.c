@@ -12,7 +12,7 @@ int main(int argc, char** argv)
     printf("\nSUCCESS\n");
     map_destroy();
     /*init("model", 1);
-    match_result *p, * result = cut("北京奇格翱翔商贸有限公司", false);
+    match_result *p, * result = cut("text", false);
     while(result != NULL)
     {
         p = result->next;
