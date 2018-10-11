@@ -58,7 +58,7 @@ void file_to_model(char * file, char * model_dir) {
     printf("open first: %s\n", first_file_path);
     free(first_file_path);
     FILE_CHECK(ffirst);
-    FILE * next_files[MAX_ITEM - 1];
+    FILE * next_files[MAX_ITEM - FIRST_LEN];
     FILE * fnext;
     char * next_file_path = get_file_name(model_dir, NEXT_FILE);
     char * prefix = malloc(sizeof(char) * (strlen(next_file_path) + 5));
@@ -71,10 +71,6 @@ void file_to_model(char * file, char * model_dir) {
     }
     free(prefix);
     free(next_file_path);
-    char * full_file_path = get_file_name(model_dir, FULL_FILE);
-    FILE * fname = fopen(full_file_path, "wb");
-    FILE_CHECK(fname);
-    free(full_file_path);
     char buf[MAX_LINE];
     int len;
     short * s;
@@ -104,7 +100,6 @@ void file_to_model(char * file, char * model_dir) {
         first->position = position++;
         first->next = NULL;
         put_first(s, first);
-        fwrite(buf, sizeof(char), MAX_LINE, fname);
         for(int i = FIRST_LEN; i < MAX_ITEM; i++) {
             if(i < len){
                 fwrite(&s[i], sizeof(short), 1, next_files[i - FIRST_LEN]);
@@ -113,10 +108,8 @@ void file_to_model(char * file, char * model_dir) {
             }
         }
         free(s);
-        if (position % 30000 == 0)
+        if (position % 30000 == 0) {
             printf(".");
-        if(position == 1000) {
-            break;
         }
     }
     write_model(ffirst);
@@ -125,18 +118,6 @@ void file_to_model(char * file, char * model_dir) {
     for(int i = 0; i < MAX_ITEM - FIRST_LEN; i++) {
         fclose(next_files[i]);
     }
-    fclose(fname);
-}
-
-char * get_index_name(int position){
-    FILE * fd = fopen(config->full_file_path, "rb");
-    char * result = malloc(sizeof(char) * (MAX_LINE + 1));
-    memset(result, 0, sizeof(char) * MAX_LINE);
-    long pos = sizeof(char) * position * MAX_LINE;
-    fseek(fd,  pos, SEEK_SET);
-    fread(result, sizeof(char), MAX_LINE, fd);
-    fclose(fd);
-    return result;
 }
 
 match_element * next_match(match_element * matchs, short ch){
@@ -169,6 +150,7 @@ match_element * next_match(match_element * matchs, short ch){
         }
         if(c == ch || c == 0) {
             q = p->next;
+            p->s[p->index + FIRST_LEN - 1] = c;
             if(result == NULL) {
                 result = p;
                 result->next = NULL;
@@ -200,14 +182,16 @@ match_element * next_match(match_element * matchs, short ch){
 }
 
 match_result * cut(char * str, bool greedy) {
-    short * s = char_to_utf(str);
+    short * s = char_to_utf(str), *cur;
     int len = short_len(s);
     first_model * first;
     match_element * current, * before = NULL, *p , *q, *tail;
     match_result * result = NULL, * result_tail;
+    char * match_str;
     for(int i = FIRST_LEN; i < len + FIRST_LEN; i++) {
+        cur = s + i - FIRST_LEN;
         if (i - FIRST_LEN < len) {
-            first = map_get(s + i - FIRST_LEN);
+            first = map_get(cur);
         }else {
             first = NULL;
         }
@@ -216,14 +200,17 @@ match_result * cut(char * str, bool greedy) {
             for(int j = 0; j < first->length; j++) {
                 if(current == NULL) {
                     current = malloc(sizeof(match_element));
+                    memset(current, 0, sizeof(match_element));
                     tail = current;
                 }else {
                     p = malloc(sizeof(match_element));
+                    memset(p, 0, sizeof(match_element));
                     tail->next = p;
                     tail = p;
                 }
                 tail->position = first->elements[j];
                 tail->index = 0;
+                memcpy(tail->s, cur, sizeof(short) * FIRST_LEN);
                 tail->last = false;
                 tail->next = NULL;
             }
@@ -234,13 +221,16 @@ match_result * cut(char * str, bool greedy) {
             if(p->last) {
                 if(result == NULL) {
                     result = malloc(sizeof(match_result));
-                    result->match_str = get_index_name(p->position);
+                    result->position = p->position;
+                    result->match_str = utf_to_char(p->s);
                     result->next = NULL;
                     result_tail = result;
                 }else {
+                    match_str = utf_to_char(p->s);
                     result_tail->next = malloc(sizeof(match_result));
                     result_tail = result_tail->next;
-                    result_tail->match_str = get_index_name(p->position);
+                    result_tail->position = p->position;
+                    result_tail->match_str = match_str;
                     result_tail->next = NULL;
                 }
                 if(!greedy) {
@@ -282,13 +272,16 @@ match_result * cut(char * str, bool greedy) {
         if(p ->last) {
             if(result == NULL) {
                 result = malloc(sizeof(match_result));
-                result->match_str = get_index_name(p->position);
+                result->position = p->position;
+                result->match_str = utf_to_char(p->s);
                 result->next = NULL;
                 result_tail = result;
             }else {
+                match_str = utf_to_char(p->s);
                 result_tail->next = malloc(sizeof(match_result));
                 result_tail = result_tail->next;
-                result_tail->match_str = get_index_name(p->position);
+                result_tail->position = p->position;
+                result_tail->match_str = match_str;
                 result_tail->next = NULL;
             }
             if(q == p) {
@@ -354,8 +347,6 @@ void init(char * model_dir, int cache_level) {
     printf("first path: %s\n", config->first_file_path);
     config->next_file_path = get_file_name(model_dir, NEXT_FILE);
     printf("next  path: %s\n", config->next_file_path);
-    config->full_file_path = get_file_name(model_dir, FULL_FILE);
-    printf("full  path: %s\n", config->full_file_path);
     load_model();
 }
 
@@ -366,7 +357,6 @@ void destroy() {
     free(cache);
     free(config->first_file_path);
     free(config->next_file_path);
-    free(config->full_file_path);
     free(config);
     void func(short *key, void * first) {
         first_model *p = (first_model *)first;

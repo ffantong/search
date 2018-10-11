@@ -3,10 +3,9 @@
 
 #define MAX_ITEM 30
 #define MAX_LINE 60
-#define FULL_FILE "name"
 #define NEXT_FILE "next"
 #define FIRST_FILE "first"
-#define FIRST_LEN 2
+#define FIRST_LEN 4
 
 typedef struct first_element {
     int position;
@@ -22,6 +21,7 @@ typedef struct first_model {
 typedef struct match_element {
     int position;
     int index;
+    short s[MAX_ITEM];
     bool last;
     struct match_element * next;
 } match_element;
@@ -31,10 +31,10 @@ typedef struct model_config {
     int cache_lavel;
     char * first_file_path;
     char * next_file_path;
-    char * full_file_path;
 } model_config;
 
 typedef struct match_result {
+    int position;
     char * match_str;
     struct match_result * next;
 } match_result;
@@ -47,7 +47,7 @@ match_result * cut(char *, bool);
 
 match_element * next_match(match_element *, short);
 
-char * get_index_name(int);
+char * get_index_name(match_result *, int);
 
 int set_last(int, bool);
 

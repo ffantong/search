@@ -1,14 +1,14 @@
 #include "defines.h"
 
-float load_factor = 0.75;
+static float load_factor = 0.75;
 
-int capacity = pow(2, 13);;
+static int capacity = 8192;
 
-map_element ** elements;
+static map_element ** elements;
 
-int size;
+static int size;
 
-int key_len;
+static int key_len;
 
 static int map_hash(short *key) {
     int h = 0;
