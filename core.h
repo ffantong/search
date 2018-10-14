@@ -8,33 +8,33 @@
 #define FIRST_LEN 4
 
 typedef struct first_element {
-    int position;
+    uint32_t position;
     struct first_element * next;
 } first_element;
 
 typedef struct first_model {
-    short *ch;
-    int length;
-    int * elements;
+    uint16_t *ch;
+    uint32_t length;
+    uint32_t * elements;
 } first_model;
 
 typedef struct match_element {
-    int position;
-    int index;
-    short s[MAX_ITEM];
+    uint32_t position;
+    uint8_t index;
+    uint16_t s[MAX_ITEM];
     bool last;
     struct match_element * next;
 } match_element;
 
 typedef struct model_config {
     char * model_dir;
-    int cache_lavel;
+    char cache_lavel;
     char * first_file_path;
     char * next_file_path;
 } model_config;
 
 typedef struct match_result {
-    int position;
+    uint32_t position;
     char * match_str;
     struct match_result * next;
 } match_result;
@@ -45,15 +45,13 @@ void load_model();
 
 match_result * cut(char *, bool);
 
-match_element * next_match(match_element *, short);
+match_element * next_match(match_element *, uint16_t);
 
-char * get_index_name(match_result *, int);
+uint32_t set_last(uint32_t, bool);
 
-int set_last(int, bool);
+bool is_last(uint32_t);
 
-bool is_last(int);
-
-void init(char *, int);
+void init(char *, uint8_t);
 
 void destroy();
 #endif // CORE

@@ -1,9 +1,9 @@
 #ifndef UTF
 #define UTF
 
-short * char_to_utf(char *);
+uint16_t * char_to_utf(char *);
 
-char * utf_to_char(short *);
+char * utf_to_char(uint16_t *);
 
-int short_len(short *);
+uint32_t utf_len(uint16_t *);
 #endif
