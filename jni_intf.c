@@ -26,7 +26,9 @@ static char * jstring_to_gbk_char(JNIEnv * env, jstring jstr)
 JNIEXPORT jobject JNICALL Java_com_fant_util_CompanyExtracter_search
 (JNIEnv *env, jclass cls, jstring jstr, jboolean greedy)
 {
-    match_result * result = cut(jstring_to_gbk_char(env, jstr), greedy), *p;
+    char * str = jstring_to_gbk_char(env, jstr);
+    match_result * result = cut(str, greedy), *p;
+    free(str);
     jclass list_cls = (*env)->FindClass(env, "Ljava/util/ArrayList;");
     jmethodID list_costruct = (*env)->GetMethodID(env, list_cls , "<init>","()V");
     jobject list_obj = (*env)->NewObject(env, list_cls , list_costruct);
@@ -58,7 +60,9 @@ JNIEXPORT jobject JNICALL Java_com_fant_util_CompanyExtracter_search
 JNIEXPORT void JNICALL Java_com_fant_util_CompanyExtracter_init
 (JNIEnv * env, jclass cls, jstring jstr, jint cache_lavel)
 {
-    init(jstring_to_gbk_char(env, jstr), cache_lavel);
+    char * str = jstring_to_gbk_char(env, jstr);
+    init(str, cache_lavel);
+    free(str);
 }
 
 /*
