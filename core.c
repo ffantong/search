@@ -75,7 +75,7 @@ void file_to_model(char * file, char * model_dir) {
     int len;
     uint16_t * s;
     uint16_t mask = 0;
-    char position = 0;
+    uint32_t position = 0;
     first_element * first;
     while (!feof(fd)) {
         memset(buf, 0, MAX_LINE);
@@ -122,10 +122,10 @@ void file_to_model(char * file, char * model_dir) {
 
 match_element * next_match(match_element * matchs, uint16_t ch){
     match_element *p = matchs, *q = NULL, *result = NULL, *tail;
-    FILE * next_files[MAX_ITEM - 1] = {NULL};
+    FILE * next_files[MAX_ITEM - FIRST_LEN] = {NULL};
     int prefix_len = strlen(config->next_file_path) + 5;
     char * prefix = malloc(sizeof(char) * (prefix_len));
-    uint64_t cur_pos[MAX_ITEM - 1] = {0};
+    uint64_t cur_pos[MAX_ITEM - FIRST_LEN] = {0};
     uint64_t step_len;
     uint16_t c;
     FILE * fd;
@@ -172,7 +172,7 @@ match_element * next_match(match_element * matchs, uint16_t ch){
             p = q;
         }
     }
-    for(int i = 0; i < MAX_ITEM - 1; i++) {
+    for(int i = 0; i < MAX_ITEM - FIRST_LEN; i++) {
         if(next_files[i] != NULL) {
             fclose(next_files[i]);
         }
@@ -183,6 +183,7 @@ match_element * next_match(match_element * matchs, uint16_t ch){
 
 match_result * cut(char * str, bool greedy) {
     uint16_t * s = char_to_utf(str), *cur;
+    free(str);
     int len = utf_len(s);
     first_model * first;
     match_element * current, * before = NULL, *p , *q, *tail;
@@ -319,6 +320,9 @@ void load_model() {
         first->elements = malloc(sizeof(int) * first->length);
         MEM_CHECK(first->elements);
         fread(first->elements, sizeof(int), first->length, fout);
+        for(int i = 0; i < first->length; i++) {
+            printf("%d\n", first->elements[i]);
+        }
         map_put(first->ch, first);
         total_element += first->length;
     }
@@ -347,6 +351,7 @@ void init(char * model_dir, uint8_t cache_level) {
     printf("first path: %s\n", config->first_file_path);
     config->next_file_path = get_file_name(model_dir, NEXT_FILE);
     printf("next  path: %s\n", config->next_file_path);
+    free(model_dir);
     load_model();
 }
 

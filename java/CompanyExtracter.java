@@ -4,7 +4,7 @@ import java.util.List;
 
 public class CompanyExtracter {
     public static void main(String[] args) {
-        System.loadLibrary("search");
+        System.load("c:/Users/fengxw/Desktop/search/search/java/search.dll");
 	  init("/home/fengxw/model", 2);
 	  long startTime = System.currentTimeMillis();
 	  System.out.println(search("啊啊啊啊", true));
