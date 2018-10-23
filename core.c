@@ -320,9 +320,6 @@ void load_model() {
         first->elements = malloc(sizeof(int) * first->length);
         MEM_CHECK(first->elements);
         fread(first->elements, sizeof(int), first->length, fout);
-        for(int i = 0; i < first->length; i++) {
-            printf("%d\n", first->elements[i]);
-        }
         map_put(first->ch, first);
         total_element += first->length;
     }
