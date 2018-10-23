@@ -183,7 +183,6 @@ match_element * next_match(match_element * matchs, uint16_t ch){
 
 match_result * cut(char * str, bool greedy) {
     uint16_t * s = char_to_utf(str), *cur;
-    free(str);
     int len = utf_len(s);
     first_model * first;
     match_element * current, * before = NULL, *p , *q, *tail;
@@ -348,7 +347,6 @@ void init(char * model_dir, uint8_t cache_level) {
     printf("first path: %s\n", config->first_file_path);
     config->next_file_path = get_file_name(model_dir, NEXT_FILE);
     printf("next  path: %s\n", config->next_file_path);
-    free(model_dir);
     load_model();
 }
 
