@@ -133,7 +133,9 @@ match_element * next_match(match_element * matchs, uint16_t ch){
         p->index++;
         if(p->index >= MAX_ITEM) {
             c = 0;
-        } else if(p->index - 1 < config->cache_lavel) {
+        } if(p->position < 0 || p->position > config->total){
+            c = ch + 1;
+        }else if(p->index - 1 < config->cache_lavel) {
             c = cache[p->index - 1][p->position];
         }else {
             step_len = p->position * sizeof(short);
@@ -322,6 +324,7 @@ void load_model() {
         map_put(first->ch, first);
         total_element += first->length;
     }
+    config->total = total_element;
     char * prefix = malloc(sizeof(char) * (strlen(config->next_file_path) + 5));
     FILE * fd;
     cache = malloc(sizeof(uint16_t *) * config->cache_lavel);
@@ -331,7 +334,10 @@ void load_model() {
         printf("load cache: %s\n", prefix);
         fd = fopen(prefix, "rb");
         cache[i] = malloc(sizeof(uint16_t) * total_element);
-        fread(cache[i], sizeof(uint16_t), total_element, fd);
+        if(fread(cache[i], sizeof(uint16_t), total_element, fd) != total_element) {
+            printf("model error!");
+            exit(1);
+        }
         fclose(fd);
     }
     free(prefix);

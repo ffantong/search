@@ -29,6 +29,7 @@ typedef struct match_element {
 typedef struct model_config {
     char * model_dir;
     char cache_lavel;
+    uint32_t total;
     char * first_file_path;
     char * next_file_path;
 } model_config;
