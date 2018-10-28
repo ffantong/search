@@ -7,7 +7,7 @@ public class CompanyExtracter {
         System.load("c:/Users/fengxw/Desktop/search/search/java/search.dll");
 	  init("/home/fengxw/model", 2);
 	  long startTime = System.currentTimeMillis();
-	  System.out.println(search("啊啊啊啊", true));
+	  System.out.println(search("北京中集宏达房地产开发有限公司", true));
         System.out.println("time: " + (System.currentTimeMillis() - startTime));
         destroy();
      }

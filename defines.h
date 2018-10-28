@@ -10,6 +10,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <unistd.h>
 
 #include "core.h"
 #include "utf.h"
@@ -27,4 +28,5 @@
         printf("open file error: %s\n", strerror(errno));    \
         exit(1);                                             \
     }
+
 #endif // DEFINES

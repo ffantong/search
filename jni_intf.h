@@ -31,6 +31,16 @@ JNIEXPORT void JNICALL Java_com_fant_util_CompanyExtracter_init
 JNIEXPORT void JNICALL Java_com_fant_util_CompanyExtracter_destroy
 (JNIEnv *, jclass);
 
+
+JNIEXPORT jobject JNICALL Java_com_jzdata_util_CompanyExtracter_search
+(JNIEnv *, jclass, jstring, jboolean);
+
+JNIEXPORT void JNICALL Java_com_jzdata_util_CompanyExtracter_init
+(JNIEnv *, jclass, jstring, jint);
+
+JNIEXPORT void JNICALL Java_com_jzdata_util_CompanyExtracter_destroy
+(JNIEnv *, jclass);
+
 #ifdef __cplusplus
 }
 #endif

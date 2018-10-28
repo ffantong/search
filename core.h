@@ -1,11 +1,11 @@
 #ifndef CORE
 #define CORE
 
-#define MAX_ITEM 30
-#define MAX_LINE 60
+#define MAX_ITEM 64
+#define MAX_LINE 128
 #define NEXT_FILE "next"
 #define FIRST_FILE "first"
-#define FIRST_LEN 4
+#define MAGIC_STR "FSEARCH"
 
 typedef struct first_element {
     uint32_t position;
@@ -32,6 +32,10 @@ typedef struct model_config {
     uint32_t total;
     char * first_file_path;
     char * next_file_path;
+    uint8_t first_len;
+    uint8_t max_item;
+    uint8_t rest_len;
+    char * file_input;
 } model_config;
 
 typedef struct match_result {
@@ -40,7 +44,7 @@ typedef struct match_result {
     struct match_result * next;
 } match_result;
 
-void file_to_model(char *, char *);
+void file_to_model(model_config *);
 
 void load_model();
 

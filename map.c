@@ -65,7 +65,7 @@ void map_init(uint8_t len) {
 }
 
 void map_put(uint16_t *k, void * entity) {
-    int len = sizeof(uint16_t) * FIRST_LEN;
+    int len = sizeof(uint16_t) * key_len;
     uint16_t * key = malloc(len);
     MEM_CHECK(key);
     memcpy(key, k, len);

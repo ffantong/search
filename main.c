@@ -2,32 +2,35 @@
 
 int main(int argc, char** argv)
 {
-    /*if(argc != 3) {
-        printf("usage: (input) (model_dir).");
+    if(argc < 2) {
+        printf("Usage:\n");
+        printf("    search [OPTION] <FILE>\n");
+        printf("Options:\n");
+        printf("    -out out model dir, must exists\n");
+        printf("    -fl first length default 4\n");
+        printf("    -mx max length default 30\n");
         exit(0);
     }
-    map_init(FIRST_LEN);
-    file_to_model(argv[1], argv[2]);
-    printf("\nSUCCESS\n");
-    map_destroy();*/
-    FILE *fp = fopen("/home/fengxw/files/out", "rb");
-    init("/home/fengxw/files/model", 1);
-    //char buf[1024 * 128];
-    //int len = 1024 * 128;
-    //while(!feof(fp)) {
-        //memset(buf, 0, len);
-        //fgets(buf, len, fp);
-        match_result *p, * result = cut("111111111111", false);
-        while(result != NULL)
-        {
-            p = result->next;
-            printf("%s", result->match_str);
-            free(result->match_str);
-            free(result);
-            result = p;
+    model_config config;
+    config.model_dir = "model";
+    config.first_len = 4;
+    config.max_item = 30;
+    int i = 1;
+    for (; i < argc; i++) {
+        if(strcmp(argv[i], "-out") == 0 && i < argc - 1) {
+            config.model_dir = argv[++i];
+        }else if(strcmp(argv[i], "-fl") == 0 && i < argc - 1) {
+            config.first_len = atoi(argv[++i]);
+        }else if(strcmp(argv[i], "-mx") == 0 && i < argc - 1) {
+            config.max_item = atoi(argv[++i]);
+        }else{
+            config.file_input = argv[i];
         }
-    //}
-    fclose(fp);
-    destroy();
+    }
+    config.rest_len = config.max_item - config.first_len;
+    map_init(config.first_len);
+    file_to_model(&config);
+    printf("\nSUCCESS\n");
+    map_destroy();
     return 0;
 }
