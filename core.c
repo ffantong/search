@@ -57,7 +57,11 @@ void file_to_model(model_config * cnf) {
     config = cnf;
     FILE * fd = fopen(config->file_input, "rb");
     if(access(config->model_dir, F_OK) != 0) {
-        mkdir(config->model_dir);
+        #ifdef WINVER
+            mkdir(config->model_dir);
+        #elif __linux
+            mkdir(config->model_dir, 0755);
+        #endif // __linux
     }
     printf("open file: %s\n", config->file_input);
     char * first_file_path = get_file_name(config->model_dir, FIRST_FILE);

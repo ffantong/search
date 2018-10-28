@@ -11,6 +11,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <unistd.h>
+#ifdef __linux
+    #include <sys/stat.h>
+#endif // DEFINES
 
 #include "core.h"
 #include "utf.h"
