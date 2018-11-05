@@ -24,7 +24,7 @@ static char * jstring_to_gbk_char(JNIEnv * env, jstring jstr) {
 JNIEXPORT jobject JNICALL Java_com_fant_util_CompanyExtracter_search
 (JNIEnv *env, jclass cls, jstring jstr, jboolean greedy) {
     char * str = jstring_to_gbk_char(env, jstr);
-    match_result * result = cut(str, greedy), *p;
+    struct match_result * result = cut(str, greedy), *p;
     free(str);
     jclass list_cls = (*env)->FindClass(env, "Ljava/util/ArrayList;");
     jmethodID list_costruct = (*env)->GetMethodID(env, list_cls, "<init>","()V");

@@ -1,11 +1,11 @@
 #ifndef HASH
 #define HASH
 
-typedef struct map_element {
+struct map_element {
     uint16_t * key;
     void * entity;
     struct map_element * next;
-} map_element;
+};
 
 void map_init(uint8_t);
 

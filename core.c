@@ -2,10 +2,10 @@
 
 uint16_t ** cache;
 
-model_config * config;
+struct model_config * config;
 
-static void put_first(uint16_t *key, first_element * first) {
-    first_element * f = map_get(key);
+static void put_first(uint16_t *key, struct first_element * first) {
+    struct first_element * f = map_get(key);
     if(f != NULL) {
         first->next = f;
     }
@@ -14,9 +14,9 @@ static void put_first(uint16_t *key, first_element * first) {
 
 static void write_model(FILE * fd) {
     void func(uint16_t *key, void * first) {
-        first_element *p, *q, *head;
+        struct first_element *p, *q, *head;
         if(first != NULL) {
-            head = (first_element*)first;
+            head = (struct first_element*)first;
             uint32_t size = 1;
             p = head->next;
             head->next = NULL;
@@ -53,7 +53,7 @@ static char * get_file_name(char * dir, char * name) {
     return file_name;
 }
 
-void file_to_model(model_config * cnf) {
+void file_to_model(struct model_config * cnf) {
     config = cnf;
     FILE * fd = fopen(config->file_input, "rb");
     if(access(config->model_dir, F_OK) != 0) {
@@ -87,7 +87,7 @@ void file_to_model(model_config * cnf) {
     uint16_t * s;
     uint16_t mask = 0;
     uint32_t position = 0;
-    first_element * first;
+    struct first_element * first;
     while (!feof(fd)) {
         memset(buf, 0, MAX_LINE);
         fgets(buf, MAX_LINE - 1, fd);
@@ -106,7 +106,7 @@ void file_to_model(model_config * cnf) {
             free(s);
             continue;
         }
-        first = malloc(sizeof(first_element));
+        first = malloc(sizeof(struct first_element));
         MEM_CHECK(first);
         first->position = position++;
         first->next = NULL;
@@ -131,8 +131,8 @@ void file_to_model(model_config * cnf) {
     }
 }
 
-match_element * next_match(match_element * matchs, uint16_t ch){
-    match_element *p = matchs, *q = NULL, *result = NULL, *tail;
+struct match_element * next_match(struct match_element * matchs, uint16_t ch){
+    struct match_element *p = matchs, *q = NULL, *result = NULL, *tail;
     FILE * next_files[config->rest_len];
     for(int i = 0; i < config->rest_len; i++) {
         next_files[i] = NULL;
@@ -198,12 +198,12 @@ match_element * next_match(match_element * matchs, uint16_t ch){
     return result;
 }
 
-match_result * cut(char * str, bool greedy) {
+struct match_result * cut(char * str, bool greedy) {
     uint16_t * s = char_to_utf(str), *cur;
     int len = utf_len(s);
-    first_model * first;
-    match_element * current, * before = NULL, *p , *q, *tail;
-    match_result * result = NULL, * result_tail;
+    struct first_model * first;
+    struct match_element * current, * before = NULL, *p , *q, *tail;
+    struct match_result * result = NULL, * result_tail;
     char * match_str;
     for(uint32_t i = config->first_len; i < len + config->first_len; i++) {
         cur = s + i - config->first_len;
@@ -216,12 +216,12 @@ match_result * cut(char * str, bool greedy) {
         if(first != NULL) {
             for(uint32_t j = 0; j < first->length; j++) {
                 if(current == NULL) {
-                    current = malloc(sizeof(match_element));
-                    memset(current, 0, sizeof(match_element));
+                    current = malloc(sizeof(struct match_element));
+                    memset(current, 0, sizeof(struct match_element));
                     tail = current;
                 }else {
-                    p = malloc(sizeof(match_element));
-                    memset(p, 0, sizeof(match_element));
+                    p = malloc(sizeof(struct match_element));
+                    memset(p, 0, sizeof(struct match_element));
                     tail->next = p;
                     tail = p;
                 }
@@ -237,14 +237,14 @@ match_result * cut(char * str, bool greedy) {
         while(p != NULL) {
             if(p->last) {
                 if(result == NULL) {
-                    result = malloc(sizeof(match_result));
+                    result = malloc(sizeof(struct match_result));
                     result->position = p->position;
                     result->match_str = utf_to_char(p->s);
                     result->next = NULL;
                     result_tail = result;
                 }else {
                     match_str = utf_to_char(p->s);
-                    result_tail->next = malloc(sizeof(match_result));
+                    result_tail->next = malloc(sizeof(struct match_result));
                     result_tail = result_tail->next;
                     result_tail->position = p->position;
                     result_tail->match_str = match_str;
@@ -288,14 +288,14 @@ match_result * cut(char * str, bool greedy) {
     while(p != NULL) {
         if(p ->last) {
             if(result == NULL) {
-                result = malloc(sizeof(match_result));
+                result = malloc(sizeof(struct match_result));
                 result->position = p->position;
                 result->match_str = utf_to_char(p->s);
                 result->next = NULL;
                 result_tail = result;
             }else {
                 match_str = utf_to_char(p->s);
-                result_tail->next = malloc(sizeof(match_result));
+                result_tail->next = malloc(sizeof(struct match_result));
                 result_tail = result_tail->next;
                 result_tail->position = p->position;
                 result_tail->match_str = match_str;
@@ -334,11 +334,11 @@ void load_model() {
     fread(&config->max_item, sizeof(uint8_t), 1, fout);
     config->rest_len = config->max_item - config->first_len;
     map_init(config->first_len);
-    first_model * first;
+    struct first_model * first;
     int total_element = 0;
     while(!feof(fout)) {
-        first = malloc(sizeof(first_model));
-        memset(first, 0, sizeof(first_model));
+        first = malloc(sizeof(struct first_model));
+        memset(first, 0, sizeof(struct first_model));
         first->ch = malloc(sizeof(uint16_t) * config->first_len);
         MEM_CHECK(first);
         fread(first->ch, sizeof(uint16_t), config->first_len, fout);
@@ -375,7 +375,7 @@ void load_model() {
 }
 
 void init(char * model_dir, uint8_t cache_level) {
-    config = malloc(sizeof(model_config));
+    config = malloc(sizeof(struct model_config));
     config->model_dir = model_dir;
     config->cache_lavel = cache_level;
     config->first_file_path = get_file_name(model_dir, FIRST_FILE);
@@ -394,7 +394,7 @@ void destroy() {
     free(config->next_file_path);
     free(config);
     void func(uint16_t *key, void * first) {
-        first_model *p = (first_model *)first;
+        struct first_model *p = (struct first_model *)first;
         free(p->ch);
         free(p->elements);
         free(p);

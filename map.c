@@ -4,7 +4,7 @@ static float load_factor = 0.75;
 
 static unsigned long capacity = 8192;
 
-static map_element ** elements;
+static struct map_element ** elements;
 
 static uint32_t size;
 
@@ -19,8 +19,8 @@ static uint32_t map_hash(uint16_t *key) {
     return h & (capacity - 1);
 }
 
-static void _destroy(map_element ** elements, uint32_t capacity) {
-    map_element *p, *q;
+static void _destroy(struct map_element ** elements, uint32_t capacity) {
+    struct map_element *p, *q;
     for(uint32_t i = 0; i < capacity; i++) {
         p = elements[i];
         while(p != NULL) {
@@ -38,10 +38,10 @@ static void _destroy(map_element ** elements, uint32_t capacity) {
 static void extend(){
     uint32_t last_capacity = capacity;
     capacity = capacity << 1;
-    map_element ** last_elements = elements;
+    struct map_element ** last_elements = elements;
     size = 0;
     map_init(key_len);
-    map_element *p;
+    struct map_element *p;
     for(uint32_t i = 0; i < last_capacity; i++) {
         p = last_elements[i];
         while(p != NULL) {
@@ -54,7 +54,7 @@ static void extend(){
 
 void map_init(uint8_t len) {
     key_len = len;
-    elements = malloc(sizeof(map_element) * capacity);
+    elements = malloc(sizeof(struct map_element) * capacity);
     if (elements == NULL) {
         printf("memory error.");
         exit(1);
@@ -70,12 +70,12 @@ void map_put(uint16_t *k, void * entity) {
     MEM_CHECK(key);
     memcpy(key, k, len);
     int index = map_hash(key);
-    map_element * element = malloc(sizeof(map_element));
+    struct map_element * element = malloc(sizeof(struct map_element));
     MEM_CHECK(element);
     element->key = key;
     element->entity = entity;
     element->next = NULL;
-    map_element * p = elements[index];
+    struct map_element * p = elements[index];
     if (p == NULL) {
         elements[index] = element;
     } else {
@@ -106,7 +106,7 @@ void map_put(uint16_t *k, void * entity) {
 }
 
 void map_for_each(void(*p_func)(uint16_t *,void *)) {
-    map_element * p;
+    struct map_element * p;
     for(int i = 0; i < capacity; i++) {
         p = elements[i];
         while(p != NULL) {
@@ -117,7 +117,7 @@ void map_for_each(void(*p_func)(uint16_t *,void *)) {
 }
 
 void * map_get(uint16_t *key) {
-    map_element *element = elements[map_hash(key)];
+    struct map_element *element = elements[map_hash(key)];
     while(element != NULL) {
         if (memcmp(element->key, key, key_len * sizeof(uint16_t)) == 0) {
             return element->entity;

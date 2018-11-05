@@ -11,7 +11,7 @@ int main(int argc, char** argv)
         printf("    -mx max length default 30\n");
         exit(0);
     }
-    model_config config;
+    struct model_config config;
     config.model_dir = "model";
     config.first_len = 4;
     config.max_item = 30;
